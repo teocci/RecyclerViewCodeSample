@@ -1,20 +1,28 @@
 package com.github.teocci.recyclercodesample.adapters;
 
+import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
 
 import com.github.teocci.recyclercodesample.R;
+import com.github.teocci.recyclercodesample.interfaces.ItemTouchListener;
+import com.github.teocci.recyclercodesample.interfaces.OnStartDragListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalItemHolder>
+        implements ItemTouchListener, OnStartDragListener
 {
+    private static final String TAG = SimpleAdapter.class.getSimpleName();
     private ArrayList<GameItem> items;
 
     private AdapterView.OnItemClickListener onItemClickListener;
@@ -96,12 +104,33 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
         this.onItemClickListener = onItemClickListener;
     }
 
-    private void onItemHolderClick(VerticalItemHolder itemHolder)
+    private void onItemHolderClick(VerticalItemHolder viewHolder)
     {
         if (onItemClickListener != null) {
-            onItemClickListener.onItemClick(null, itemHolder.itemView,
-                    itemHolder.getAdapterPosition(), itemHolder.getItemId());
+            onItemClickListener.onItemClick(null, viewHolder.itemView,
+                    viewHolder.getAdapterPosition(), viewHolder.getItemId());
         }
+    }
+
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition)
+    {
+        Collections.swap(items, fromPosition, toPosition);
+        notifyItemMoved(fromPosition, toPosition);
+        return true;
+    }
+
+    @Override
+    public void onItemDismiss(int position)
+    {
+        items.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    @Override
+    public void onStartDrag(RecyclerView.ViewHolder viewHolder)
+    {
+        Log.e(TAG, "onStartDrag");
     }
 
     public static class GameItem
@@ -120,7 +149,8 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
         }
     }
 
-    public static class VerticalItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener
+    public static class VerticalItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
+            View.OnTouchListener
     {
         private TextView homeScore, awayScore;
         private TextView homeName, awayName;
@@ -165,6 +195,16 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
         {
             this.awayName.setText(awayName);
         }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event)
+        {
+            // Start a drag whenever the handle view it touched
+            if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                adapter.onStartDrag(this);
+            }
+            return false;
+        }
     }
 
     public static GameItem generateDummyItem()
@@ -177,7 +217,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
 
     public static List<SimpleAdapter.GameItem> generateDummyData(int count)
     {
-        ArrayList<SimpleAdapter.GameItem> items = new ArrayList<SimpleAdapter.GameItem>();
+        ArrayList<SimpleAdapter.GameItem> items = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             items.add(new SimpleAdapter.GameItem("Losers", "Winners", i, i + 5));

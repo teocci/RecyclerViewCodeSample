@@ -1,4 +1,4 @@
-package com.github.teocci.recyclercodesample.adapters;
+package com.github.teocci.recyclercodesample.views;
 
 import android.content.Context;
 import android.util.AttributeSet;

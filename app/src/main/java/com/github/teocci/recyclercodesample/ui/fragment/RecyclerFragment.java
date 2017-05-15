@@ -3,6 +3,7 @@ package com.github.teocci.recyclercodesample.ui.fragment;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,8 +15,10 @@ import android.widget.Toast;
 
 import com.github.teocci.recyclercodesample.NumberPickerDialog;
 import com.github.teocci.recyclercodesample.R;
+import com.github.teocci.recyclercodesample.SimpleItemTouchCallback;
 import com.github.teocci.recyclercodesample.adapters.SimpleAdapter;
 import com.github.teocci.recyclercodesample.interfaces.OnNumberSelectedListener;
+import com.github.teocci.recyclercodesample.interfaces.OnStartDragListener;
 
 /**
  * Created by teocci.
@@ -23,11 +26,12 @@ import com.github.teocci.recyclercodesample.interfaces.OnNumberSelectedListener;
  * @author teocci@yandex.com on 2017/Apr/11
  */
 
-public abstract class RecyclerFragment extends Fragment implements AdapterView.OnItemClickListener
+public abstract class RecyclerFragment extends Fragment implements AdapterView.OnItemClickListener,
+        OnStartDragListener
 {
-
     private RecyclerView recyclerView;
     private SimpleAdapter simpleAdapter;
+    private ItemTouchHelper itemTouchHelper;
 
     /**
      * Required Overrides for Sample Fragments
@@ -58,15 +62,19 @@ public abstract class RecyclerFragment extends Fragment implements AdapterView.O
         recyclerView.setLayoutManager(getLayoutManager());
         recyclerView.addItemDecoration(getItemDecoration());
 
-        recyclerView.getItemAnimator().setAddDuration(1000);
-        recyclerView.getItemAnimator().setChangeDuration(1000);
-        recyclerView.getItemAnimator().setMoveDuration(1000);
-        recyclerView.getItemAnimator().setRemoveDuration(1000);
+        recyclerView.getItemAnimator().setAddDuration(500);
+        recyclerView.getItemAnimator().setChangeDuration(500);
+        recyclerView.getItemAnimator().setMoveDuration(500);
+        recyclerView.getItemAnimator().setRemoveDuration(500);
 
         simpleAdapter = getAdapter();
         simpleAdapter.setItemCount(getDefaultItemCount());
         simpleAdapter.setOnItemClickListener(this);
         recyclerView.setAdapter(simpleAdapter);
+
+        ItemTouchHelper.Callback callback = new SimpleItemTouchCallback(simpleAdapter);
+        itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
 
         return rootView;
     }
@@ -141,5 +149,10 @@ public abstract class RecyclerFragment extends Fragment implements AdapterView.O
         Toast.makeText(getActivity(),
                 "Clicked: " + position + ", index " + recyclerView.indexOfChild(view),
                 Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+        itemTouchHelper.startDrag(viewHolder);
     }
 }

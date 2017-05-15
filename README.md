@@ -3,12 +3,14 @@
 This repository contains examples for using the RecyclerView widget found in the Android Support Library.
 
 ### Disclaimer
-This repository contains sample code intended to demonstrate the capabilities of the RecyclerView layout manager APIs. It is not intended to be used as-is in applications as a library dependency, and will not be maintained as such. Bug fix contributions are welcome, but issues and feature requests will not be addressed.
+This repository contains a sample code intended to demonstrate the capabilities of the RecyclerView API. It is not intended to be used as-is in applications as a library dependency, and will not be maintained as such. Bug fix contributions are welcome, but issues and feature requests will not be addressed.
 
 ### Example Contents
 The following bits can be found in the main sample application:
 
 - Implementation of `LinearLayoutManager` and `GridLayoutManager` for vertical and horizontal scrolling.
+- Implementation of `SimpleItemTouchcallback` for *Drag* and *Swipe* events based on `ItemTouchHelper` class. This class is a powerful utility that takes care of everything needed to add both drag and swipe-to-dismiss to a RecyclerView object.
+
 - Custom ItemDecorations
     * `InsetDecoration` - Create an inset margin on all child views.
     * `DividerDecoration` - Create an inset margin and draw dividers below vertical child views.
