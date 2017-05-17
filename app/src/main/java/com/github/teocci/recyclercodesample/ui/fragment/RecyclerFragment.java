@@ -70,6 +70,7 @@ public abstract class RecyclerFragment extends Fragment implements AdapterView.O
         simpleAdapter = getAdapter();
         simpleAdapter.setItemCount(getDefaultItemCount());
         simpleAdapter.setOnItemClickListener(this);
+        simpleAdapter.setOnStartDragListener(this);
         recyclerView.setAdapter(simpleAdapter);
 
         ItemTouchHelper.Callback callback = new SimpleItemTouchCallback(simpleAdapter);

@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.github.teocci.recyclercodesample.R;
 import com.github.teocci.recyclercodesample.interfaces.ItemTouchListener;
 import com.github.teocci.recyclercodesample.interfaces.OnStartDragListener;
+import com.github.teocci.recyclercodesample.ui.fragment.RecyclerFragment;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,12 +21,15 @@ import java.util.List;
 import java.util.Random;
 
 public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalItemHolder>
-        implements ItemTouchListener, OnStartDragListener
+        implements ItemTouchListener
 {
     private static final String TAG = SimpleAdapter.class.getSimpleName();
+
     private ArrayList<GameItem> items;
 
     private AdapterView.OnItemClickListener onItemClickListener;
+    private OnStartDragListener onStartDragListener;
+    private ViewGroup container;
 
     public SimpleAdapter()
     {
@@ -75,6 +79,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
     @Override
     public VerticalItemHolder onCreateViewHolder(ViewGroup container, int viewType)
     {
+        this.container = container;
         LayoutInflater inflater = LayoutInflater.from(container.getContext());
         View root = inflater.inflate(R.layout.view_match_item, container, false);
 
@@ -104,11 +109,23 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
         this.onItemClickListener = onItemClickListener;
     }
 
+    public void setOnStartDragListener(OnStartDragListener onStartDragListener)
+    {
+        this.onStartDragListener = onStartDragListener;
+    }
+
     private void onItemHolderClick(VerticalItemHolder viewHolder)
     {
         if (onItemClickListener != null) {
             onItemClickListener.onItemClick(null, viewHolder.itemView,
                     viewHolder.getAdapterPosition(), viewHolder.getItemId());
+        }
+    }
+
+    private void onItemHolderStartDrag(VerticalItemHolder viewHolder)
+    {
+        if (onStartDragListener != null) {
+            onStartDragListener.onStartDrag(viewHolder);
         }
     }
 
@@ -121,16 +138,10 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
     }
 
     @Override
-    public void onItemDismiss(int position)
+    public void onItemDismiss(final RecyclerView.ViewHolder viewHolder)
     {
-        items.remove(position);
-        notifyItemRemoved(position);
-    }
-
-    @Override
-    public void onStartDrag(RecyclerView.ViewHolder viewHolder)
-    {
-        Log.e(TAG, "onStartDrag");
+        items.remove(viewHolder.getAdapterPosition());
+        notifyItemRemoved(viewHolder.getAdapterPosition());
     }
 
     public static class GameItem
@@ -176,6 +187,16 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
             adapter.onItemHolderClick(this);
         }
 
+        @Override
+        public boolean onTouch(View v, MotionEvent event)
+        {
+            // Start a drag whenever the handle view it touched
+            if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                adapter.onItemHolderStartDrag(this);
+            }
+            return false;
+        }
+
         public void setHomeScore(CharSequence homeScore)
         {
             this.homeScore.setText(homeScore);
@@ -194,16 +215,6 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
         public void setAwayName(CharSequence awayName)
         {
             this.awayName.setText(awayName);
-        }
-
-        @Override
-        public boolean onTouch(View v, MotionEvent event)
-        {
-            // Start a drag whenever the handle view it touched
-            if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
-                adapter.onStartDrag(this);
-            }
-            return false;
         }
     }
 
