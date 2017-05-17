@@ -1,9 +1,12 @@
 package com.github.teocci.recyclercodesample.ui.fragment;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,6 +20,7 @@ import com.github.teocci.recyclercodesample.NumberPickerDialog;
 import com.github.teocci.recyclercodesample.R;
 import com.github.teocci.recyclercodesample.SimpleItemTouchCallback;
 import com.github.teocci.recyclercodesample.adapters.SimpleAdapter;
+import com.github.teocci.recyclercodesample.interfaces.OnLoadMoreListener;
 import com.github.teocci.recyclercodesample.interfaces.OnNumberSelectedListener;
 import com.github.teocci.recyclercodesample.interfaces.OnStartDragListener;
 
@@ -27,11 +31,17 @@ import com.github.teocci.recyclercodesample.interfaces.OnStartDragListener;
  */
 
 public abstract class RecyclerFragment extends Fragment implements AdapterView.OnItemClickListener,
-        OnStartDragListener
+        OnStartDragListener, OnLoadMoreListener
 {
-    private RecyclerView recyclerView;
-    private SimpleAdapter simpleAdapter;
-    private ItemTouchHelper itemTouchHelper;
+    private static final String TAG = SimpleAdapter.class.getSimpleName();
+
+    protected RecyclerView recyclerView;
+    protected SimpleAdapter simpleAdapter;
+    protected ItemTouchHelper itemTouchHelper;
+
+    private int visibleThreshold = 1;
+    private int lastVisibleItem, totalItemCount;
+    private boolean isLoading;
 
     /**
      * Required Overrides for Sample Fragments
@@ -71,7 +81,25 @@ public abstract class RecyclerFragment extends Fragment implements AdapterView.O
         simpleAdapter.setItemCount(getDefaultItemCount());
         simpleAdapter.setOnItemClickListener(this);
         simpleAdapter.setOnStartDragListener(this);
+        simpleAdapter.setOnLoadMoreListener(this);
         recyclerView.setAdapter(simpleAdapter);
+
+        final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener()
+        {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy)
+            {
+                super.onScrolled(recyclerView, dx, dy);
+                totalItemCount = linearLayoutManager.getItemCount();
+                lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+                Log.e(TAG, "totalItemCount: " + totalItemCount + "lastVisibleItem: " + lastVisibleItem);
+                if (!isLoading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
+                    simpleAdapter.onItemHolderOnLoadMore();
+                    isLoading = true;
+                }
+            }
+        });
 
         ItemTouchHelper.Callback callback = new SimpleItemTouchCallback(simpleAdapter);
         itemTouchHelper = new ItemTouchHelper(callback);
@@ -153,7 +181,27 @@ public abstract class RecyclerFragment extends Fragment implements AdapterView.O
     }
 
     @Override
-    public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+    public void onStartDrag(RecyclerView.ViewHolder viewHolder)
+    {
         itemTouchHelper.startDrag(viewHolder);
     }
+
+    @Override
+    public void onLoadMore()
+    {
+        //Here adding null object to last position,check the condition in getItemViewType() method,if object is null then display progress
+//        dataModels.add(null);
+//        simpleAdapter.notifyItemInserted(dataModels.size() - 1);
+
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                simpleAdapter.addMoreItems(simpleAdapter.getItemCount());
+                isLoading = false;
+            }
+        }, 1000);
+    }
+
 }

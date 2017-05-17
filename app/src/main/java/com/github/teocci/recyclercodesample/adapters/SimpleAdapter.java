@@ -12,8 +12,8 @@ import android.widget.TextView;
 
 import com.github.teocci.recyclercodesample.R;
 import com.github.teocci.recyclercodesample.interfaces.ItemTouchListener;
+import com.github.teocci.recyclercodesample.interfaces.OnLoadMoreListener;
 import com.github.teocci.recyclercodesample.interfaces.OnStartDragListener;
-import com.github.teocci.recyclercodesample.ui.fragment.RecyclerFragment;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,57 +29,21 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
 
     private AdapterView.OnItemClickListener onItemClickListener;
     private OnStartDragListener onStartDragListener;
-    private ViewGroup container;
+    private OnLoadMoreListener onLoadMoreListener;
 
     public SimpleAdapter()
     {
         items = new ArrayList<>();
     }
 
-    /**
-     * A common adapter modification or reset mechanism. As with ListAdapter,
-     * calling notifyDataSetChanged() will trigger the RecyclerView to update
-     * the view. However, this method will not trigger any of the RecyclerView
-     * animation features.
-     */
-    public void setItemCount(int count)
+    public SimpleAdapter(RecyclerView recyclerView)
     {
-        items.clear();
-        items.addAll(generateDummyData(count));
-
-        notifyDataSetChanged();
-    }
-
-    /**
-     * Inserting a new item at the head of the list. This uses a specialized
-     * RecyclerView method, notifyItemInserted(), to trigger any enabled item
-     * animations in addition to updating the view.
-     */
-    public void addItem(int position)
-    {
-        if (position > items.size()) return;
-
-        items.add(position, generateDummyItem());
-        notifyItemInserted(position);
-    }
-
-    /**
-     * Inserting a new item at the head of the list. This uses a specialized
-     * RecyclerView method, notifyItemRemoved(), to trigger any enabled item
-     * animations in addition to updating the view.
-     */
-    public void removeItem(int position)
-    {
-        if (position >= items.size()) return;
-
-        items.remove(position);
-        notifyItemRemoved(position);
+        items = new ArrayList<>();
     }
 
     @Override
     public VerticalItemHolder onCreateViewHolder(ViewGroup container, int viewType)
     {
-        this.container = container;
         LayoutInflater inflater = LayoutInflater.from(container.getContext());
         View root = inflater.inflate(R.layout.view_match_item, container, false);
 
@@ -104,6 +68,72 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
         return items.size();
     }
 
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition)
+    {
+        Collections.swap(items, fromPosition, toPosition);
+        notifyItemMoved(fromPosition, toPosition);
+        return true;
+    }
+
+    @Override
+    public void onItemDismiss(final RecyclerView.ViewHolder viewHolder)
+    {
+        items.remove(viewHolder.getAdapterPosition());
+        notifyItemRemoved(viewHolder.getAdapterPosition());
+    }    /**
+ * A common adapter modification or reset mechanism. As with ListAdapter,
+ * calling notifyDataSetChanged() will trigger the RecyclerView to update
+ * the view. However, this method will not trigger any of the RecyclerView
+ * animation features.
+ */
+public void setItemCount(int count)
+{
+    items.clear();
+    items.addAll(generateDummyData(count));
+
+    notifyDataSetChanged();
+}
+
+    /**
+     * Inserting a new item at the head of the list. This uses a specialized
+     * RecyclerView method, notifyItemInserted(), to trigger any enabled item
+     * animations in addition to updating the view.
+     */
+    public void addItem(int position)
+    {
+        if (position > items.size()) return;
+
+        items.add(position, generateDummyItem());
+        notifyItemInserted(position);
+    }
+
+    /**
+     * Inserting a new item at the head of the list. This uses a specialized
+     * RecyclerView method, notifyItemInserted(), to trigger any enabled item
+     * animations in addition to updating the view.
+     */
+    public void addMoreItems(int count)
+    {
+        items.addAll(generateDummyData(count));
+        Log.e(TAG, "adding " + count + " more elements.");
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Inserting a new item at the head of the list. This uses a specialized
+     * RecyclerView method, notifyItemRemoved(), to trigger any enabled item
+     * animations in addition to updating the view.
+     */
+    public void removeItem(int position)
+    {
+        if (position >= items.size()) return;
+
+        items.remove(position);
+        notifyItemRemoved(position);
+    }
+
+
     public void setOnItemClickListener(AdapterView.OnItemClickListener onItemClickListener)
     {
         this.onItemClickListener = onItemClickListener;
@@ -112,6 +142,11 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
     public void setOnStartDragListener(OnStartDragListener onStartDragListener)
     {
         this.onStartDragListener = onStartDragListener;
+    }
+
+    public void setOnLoadMoreListener(OnLoadMoreListener onLoadMoreListener)
+    {
+        this.onLoadMoreListener = onLoadMoreListener;
     }
 
     private void onItemHolderClick(VerticalItemHolder viewHolder)
@@ -129,19 +164,11 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
         }
     }
 
-    @Override
-    public boolean onItemMove(int fromPosition, int toPosition)
+    public void onItemHolderOnLoadMore()
     {
-        Collections.swap(items, fromPosition, toPosition);
-        notifyItemMoved(fromPosition, toPosition);
-        return true;
-    }
-
-    @Override
-    public void onItemDismiss(final RecyclerView.ViewHolder viewHolder)
-    {
-        items.remove(viewHolder.getAdapterPosition());
-        notifyItemRemoved(viewHolder.getAdapterPosition());
+        if (onLoadMoreListener != null) {
+            onLoadMoreListener.onLoadMore();
+        }
     }
 
     public static class GameItem

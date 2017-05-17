@@ -10,7 +10,7 @@ The following bits can be found in the main sample application:
 
 - Implementation of `LinearLayoutManager` and `GridLayoutManager` for vertical and horizontal scrolling.
 - Implementation of `SimpleItemTouchcallback` for *Drag* and *Swipe* events based on `ItemTouchHelper` class. This class is a powerful utility that takes care of everything needed to add both drag and swipe-to-dismiss to a RecyclerView object.
-
+- Added a simple LoadMoreListener when ever we reach the last element we add more elements.
 - Custom ItemDecorations
     * `InsetDecoration` - Create an inset margin on all child views.
     * `DividerDecoration` - Create an inset margin and draw dividers below vertical child views.
