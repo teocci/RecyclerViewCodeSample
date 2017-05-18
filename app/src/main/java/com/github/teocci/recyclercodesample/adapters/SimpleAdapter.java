@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.github.teocci.recyclercodesample.R;
@@ -20,10 +21,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalItemHolder>
+public class SimpleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         implements ItemTouchListener
 {
     private static final String TAG = SimpleAdapter.class.getSimpleName();
+
+    private final int VIEW_TYPE_ITEM = 0;
+    private final int VIEW_TYPE_LOADER = 1;
 
     private ArrayList<GameItem> items;
 
@@ -36,36 +40,50 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
         items = new ArrayList<>();
     }
 
-    public SimpleAdapter(RecyclerView recyclerView)
-    {
-        items = new ArrayList<>();
-    }
-
     @Override
-    public VerticalItemHolder onCreateViewHolder(ViewGroup container, int viewType)
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup container, int viewType)
     {
         LayoutInflater inflater = LayoutInflater.from(container.getContext());
-        View root = inflater.inflate(R.layout.view_match_item, container, false);
+        if (viewType == VIEW_TYPE_ITEM) {
+            View root = inflater.inflate(R.layout.view_match_item, container, false);
 
-        return new VerticalItemHolder(root, this);
+            return new VerticalItemHolder(root, this);
+        } else if (viewType == VIEW_TYPE_LOADER) {
+            View root = inflater.inflate(R.layout.loading_item, container, false);
+
+            return new LoaderViewHolder(root);
+        }
+
+        return null;
     }
 
     @Override
-    public void onBindViewHolder(VerticalItemHolder itemHolder, int position)
+    public void onBindViewHolder(RecyclerView.ViewHolder itemHolder, int position)
     {
-        GameItem item = items.get(position);
+        if (itemHolder instanceof VerticalItemHolder) {
+            GameItem item = items.get(position);
+            VerticalItemHolder  verticalItemHolder = (VerticalItemHolder) itemHolder;
+            verticalItemHolder.setAwayScore(String.valueOf(item.awayScore));
+            verticalItemHolder.setHomeScore(String.valueOf(item.homeScore));
 
-        itemHolder.setAwayScore(String.valueOf(item.awayScore));
-        itemHolder.setHomeScore(String.valueOf(item.homeScore));
+            verticalItemHolder.setAwayName(item.awayTeam);
+            verticalItemHolder.setHomeName(item.homeTeam);
+        } else if (itemHolder instanceof LoaderViewHolder) {
+            LoaderViewHolder loaderViewHolder = (LoaderViewHolder) itemHolder;
+            loaderViewHolder.progressBar.setIndeterminate(true);
+        }
+    }
 
-        itemHolder.setAwayName(item.awayTeam);
-        itemHolder.setHomeName(item.homeTeam);
+    @Override
+    public int getItemViewType(int position)
+    {
+        return items.get(position) == null ? VIEW_TYPE_LOADER : VIEW_TYPE_ITEM;
     }
 
     @Override
     public int getItemCount()
     {
-        return items.size();
+        return items == null ? 0 : items.size();
     }
 
     @Override
@@ -81,19 +99,21 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.VerticalIt
     {
         items.remove(viewHolder.getAdapterPosition());
         notifyItemRemoved(viewHolder.getAdapterPosition());
-    }    /**
- * A common adapter modification or reset mechanism. As with ListAdapter,
- * calling notifyDataSetChanged() will trigger the RecyclerView to update
- * the view. However, this method will not trigger any of the RecyclerView
- * animation features.
- */
-public void setItemCount(int count)
-{
-    items.clear();
-    items.addAll(generateDummyData(count));
+    }
 
-    notifyDataSetChanged();
-}
+    /**
+     * A common adapter modification or reset mechanism. As with ListAdapter,
+     * calling notifyDataSetChanged() will trigger the RecyclerView to update
+     * the view. However, this method will not trigger any of the RecyclerView
+     * animation features.
+     */
+    public void setItemCount(int count)
+    {
+        items.clear();
+        items.addAll(generateDummyData(count));
+
+        notifyDataSetChanged();
+    }
 
     /**
      * Inserting a new item at the head of the list. This uses a specialized
@@ -133,6 +153,15 @@ public void setItemCount(int count)
         notifyItemRemoved(position);
     }
 
+    public void addLoader() {
+        items.add(null);
+        notifyItemInserted(items.size() - 1);
+    }
+
+    public void removeLoader() {
+        items.remove(items.size() - 1);
+        notifyItemRemoved(items.size());
+    }
 
     public void setOnItemClickListener(AdapterView.OnItemClickListener onItemClickListener)
     {
@@ -171,7 +200,7 @@ public void setItemCount(int count)
         }
     }
 
-    public static class GameItem
+    private static class GameItem
     {
         public String homeTeam;
         public String awayTeam;
@@ -187,7 +216,18 @@ public void setItemCount(int count)
         }
     }
 
-    public static class VerticalItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
+    private static class LoaderViewHolder extends RecyclerView.ViewHolder
+    {
+        private ProgressBar progressBar;
+
+        private LoaderViewHolder(View itemView)
+        {
+            super(itemView);
+            progressBar = (ProgressBar) itemView.findViewById(R.id.progress_bar);
+        }
+    }
+
+    private static class VerticalItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
             View.OnTouchListener
     {
         private TextView homeScore, awayScore;

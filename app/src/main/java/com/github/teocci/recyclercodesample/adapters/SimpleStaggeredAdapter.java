@@ -1,5 +1,6 @@
 package com.github.teocci.recyclercodesample.adapters;
 
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.github.teocci.recyclercodesample.R;
@@ -7,7 +8,7 @@ import com.github.teocci.recyclercodesample.R;
 public class SimpleStaggeredAdapter extends SimpleAdapter
 {
     @Override
-    public void onBindViewHolder(VerticalItemHolder itemHolder, int position)
+    public void onBindViewHolder(RecyclerView.ViewHolder itemHolder, int position)
     {
         super.onBindViewHolder(itemHolder, position);
 

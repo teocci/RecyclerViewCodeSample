@@ -190,18 +190,18 @@ public abstract class RecyclerFragment extends Fragment implements AdapterView.O
     public void onLoadMore()
     {
         //Here adding null object to last position,check the condition in getItemViewType() method,if object is null then display progress
-//        dataModels.add(null);
-//        simpleAdapter.notifyItemInserted(dataModels.size() - 1);
+        simpleAdapter.addLoader();
 
         new Handler().postDelayed(new Runnable()
         {
             @Override
             public void run()
             {
+                simpleAdapter.removeLoader();
                 simpleAdapter.addMoreItems(simpleAdapter.getItemCount());
                 isLoading = false;
             }
-        }, 1000);
+        }, 200);
     }
 
 }
