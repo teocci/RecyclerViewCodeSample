@@ -1,4 +1,4 @@
-## Android RecyclerView Examples
+## RecyclerView Code Sample
 
 This repository contains examples for using the RecyclerView widget found in the Android Support Library.
 
